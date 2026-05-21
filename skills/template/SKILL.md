@@ -4,7 +4,7 @@ description: Reference template and authoring guide for gf-autopilot skills. NOT
 version: 0.1.0
 ---
 
-# \template — gf-autopilot 스킬 작성 가이드
+# template — gf-autopilot 스킬 작성 가이드
 
 이 디렉터리는 **동작하는 스킬이 아닙니다**. 새 스킬을 만들 때 복사해서 시작하는 참고용 템플릿이자, gf-autopilot 플러그인 안에서 스킬을 작성하는 방법을 설명하는 튜토리얼입니다.
 

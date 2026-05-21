@@ -25,13 +25,13 @@ allowed-tools: [Bash, Read]
 **Anti-pattern**
 
 - 이미 다른 컨벤션(trunk-based, GitHub Flow 등)으로 운영 중인 저장소에 사용자 확인 없이 적용하지 마세요.
-- 이 스킬은 브랜치 생성/머지 등 실제 git-flow 워크플로우를 실행하지 않습니다. 그건 `feature-start` 등 별도 스킬의 영역입니다.
+- 이 스킬은 브랜치 생성/머지 등 실제 git-flow 워크플로우를 실행하지 않습니다. 그건 별도 스킬 (`/gf-pr`, `/gf-release`) 이나 `git flow feature|release|hotfix` 명령의 영역입니다.
 
 ## Inputs
 
 - 사전조건
   - `git` 설치 필수
-  - **`git flow` (git-flow AVH edition 최신 버전) 설치 필수**. 없거나 비-AVH edition이면 스킬은 즉시 중단하고 설치를 요청합니다. **`git config` 만으로 우회하지 않습니다** — gf-autopilot의 후속 스킬(`feature-start`, `release-finish` 등)이 모두 `git flow` CLI 에 의존하기 때문입니다.
+  - **`git flow` (git-flow AVH edition 최신 버전) 설치 필수**. 없거나 비-AVH edition이면 스킬은 즉시 중단하고 설치를 요청합니다. **`git config` 만으로 우회하지 않습니다** — gf-autopilot의 후속 스킬 (`/gf-release`, `/gf-pr` 등) 과 `git flow` CLI 직접 호출이 모두 AVH edition 에 의존하기 때문입니다.
 - 인자: 없음
 - 권장 설정 값
 
@@ -160,7 +160,7 @@ allowed-tools: [Bash, Read]
 
 8. **다음 단계 안내**
 
-   - "현재 브랜치는 `develop` 입니다. 이제 `/feature-start <name>` 으로 새 기능을 시작할 수 있습니다."
+   - "현재 브랜치는 `develop` 입니다. 이제 `git flow feature start <name>` 으로 새 기능을 시작할 수 있습니다."
    - 원격 저장소가 설정되어 있고(`git remote get-url origin` 성공) 두 브랜치가 푸시되지 않았다면, 사용자에게 `git push -u origin main develop` 실행 여부를 묻습니다(강제 실행 금지).
 
 ## Output
