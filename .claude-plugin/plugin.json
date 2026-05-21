@@ -1,6 +1,6 @@
 {
   "name": "gf-autopilot",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Git-flow workflow automation for Claude Code — feature/release/hotfix branch helpers, naming conventions, and merge orchestration.",
   "author": {
     "name": "paraang",
