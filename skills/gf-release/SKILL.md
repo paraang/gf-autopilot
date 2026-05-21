@@ -149,8 +149,13 @@ git-flow 의 `release start` → `release finish` 흐름을 한 번에 자동화
      ```bash
      git log --no-merges --pretty=format:"%s" <prev>..HEAD
      ```
-     - Conventional Commits prefix 로 카테고리 추정: `feat:`→Added, `fix:`→Fixed, `perf:`/`refactor:`→Changed, `docs:`→Changed(문서), `chore:`→스킵, `BREAKING CHANGE:`→Removed/Changed + major bump 경고.
-     - **자동 분류 결과는 반드시 사용자 검수**. 침묵하지 말 것.
+     - Conventional Commits prefix 가 있으면 그대로 카테고리 추정: `feat:`→Added, `fix:`→Fixed, `perf:`/`refactor:`→Changed, `docs:`→Changed(문서), `chore:`→스킵, `BREAKING CHANGE:`→Removed/Changed + major bump 경고.
+     - **prefix 없는 비-Conventional 메시지도 자동 추정**해서 가장 가까운 카테고리에 배치. 사용자에게 분류를 묻지 말 것. 추정 불가능한 항목은 `Changed` 로 기본 배치.
+   - **작성 톤 (중요)**: CHANGELOG 는 사용자 관점의 release note 이지 commit log 사본이 아닙니다.
+     - **기능적 변경사항(사용자 / API / 동작 / 설정의 가시적 변화)에 집중** 합니다.
+     - 주석 추가, 변수 rename, 포매팅, 사소한 리팩토링, 내부 헬퍼 정리 등 **사용자/API 가시성이 없는 변경은 한두 줄로 묶어 요약**하거나, 의미가 약하면 **생략** 합니다.
+     - 같은 종류의 자잘한 변경 여러 건은 한 줄로 합치세요 (예: "내부 주석 및 변수명 정리").
+     - 줄당 1줄, 동사로 시작, 끝마침 없음.
    - 사용자가 4번에서 메모를 전달했으면 "### 배포자 메모" 섹션을 최상단에 추가. 없으면 섹션 생략.
    - 첫 릴리스이고 `CHANGELOG.md` 가 없으면 헤더도 함께 생성 (아래 양식 예시 참고).
    - GitHub 원격이 있을 때만 하단 비교 링크 자동 갱신:
@@ -213,7 +218,7 @@ git-flow 의 `release start` → `release finish` 흐름을 한 번에 자동화
 - CHANGELOG.md 신규 entry 텍스트
 - `main`, `develop` 최신 commit SHA
 - push 결과
-- 다음 액션 제안 (예: "이제 GitHub Releases 에 노트를 게시하시려면 `gh release create <version>` 을 실행하세요.")
+- 다음 액션 제안 (예: "이제 `develop` 에서 다음 작업을 이어갈 수 있습니다.")
 
 ## Notes (구현 시 주의)
 
@@ -223,7 +228,8 @@ git-flow 의 `release start` → `release finish` 흐름을 한 번에 자동화
 - **이미 존재하는 태그면 중단**: force-delete 금지.
 - **release 브랜치 충돌 시**: 새로 시작하지 말고 기존 finish 만 진행하도록 안내.
 - **finish 실패 시 정리**: release 브랜치 유지 + 사용자에게 수동 복구 안내. 자동 리셋/리베이스 금지.
-- **CHANGELOG 카테고리 자동 분류는 보조 수단**: 사용자 검수 거쳐야 commit.
+- **CHANGELOG 카테고리 자동 분류는 자율 수행**: Conventional 이든 아니든 알아서 추정·분류해서 작성합니다. **사용자에게 카테고리 분류를 묻지 않습니다.** (대신 작성된 CHANGELOG diff 를 사용자에게 보여줘 사후 수정 기회는 제공합니다.)
+- **CHANGELOG 작성 톤**: 기능적 변경 중심. 주석/포매팅/사소한 내부 정리 같은 사용자/API 가시성 없는 변경은 묶어서 한 줄로 요약하거나 생략합니다.
 - **lock 파일 (`package-lock.json`, `yarn.lock`, `Cargo.lock`, `poetry.lock` 등)**: 본 스킬은 직접 수정하지 않습니다. 동기화 명령(`npm install --package-lock-only` 등)을 사용자에게 제안만 합니다.
 - **`go.mod`**: 일반적으로 git 태그가 단일 진실. 파일 수정 없음. 사용자에게 명시.
 - **`marketplace.json` 의 `source.ref` bump**: Claude Code 플러그인 프로젝트에서만 적용. 다른 프로젝트엔 해당 없음.
