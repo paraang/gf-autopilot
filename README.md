@@ -23,6 +23,14 @@ gf-autopilot은 git-flow 브랜칭 모델을 Claude Code 안에서 일관되게 
 
 ---
 
+## 사전 요구사항 (Prerequisites)
+
+- [git](https://git-scm.com/)
+- [git flow (AVH edition)](https://github.com/petervanderdoes/gitflow-avh)
+- [GitHub CLI (`gh`)](https://cli.github.com/)
+
+---
+
 ## 설치 (Installation)
 
 이 저장소가 GitHub에 호스팅되어 있다고 가정합니다 (`https://github.com/paraang/gf-autopilot`).
