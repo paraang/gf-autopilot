@@ -37,12 +37,78 @@ gf-autopilot은 git-flow 브랜칭 모델을 Claude Code 안에서 일관되게 
 
 마켓플레이스 이름과 플러그인 이름이 모두 `gf-autopilot` 인 것은 의도된 동작입니다 — 이 저장소는 **단일 플러그인을 셀프 호스팅하는 마켓플레이스**이기 때문입니다.
 
-업데이트:
+---
+
+## 플러그인 업데이트 (Plugin update)
+
+대상에 따라 두 흐름이 있습니다. 본인이 어떤 역할인지에 맞춰 따라가세요.
+
+### 1) 설치자 — 이미 설치한 플러그인을 최신 릴리스로 갱신
 
 ```bash
 /plugin marketplace update gf-autopilot
 /plugin update gf-autopilot@gf-autopilot
 ```
+
+위 두 명령이 보통 충분합니다. 마켓플레이스 메타데이터를 새로 가져오고(`marketplace.json` 의 `source.ref` 가 새 태그로 바뀐 것을 인지), 그 태그 시점의 플러그인 본체를 로컬에 받아옵니다.
+
+옛 캐시 잔재로 새 버전이 인식되지 않으면 **마켓플레이스 재등록**:
+
+```bash
+/plugin marketplace remove gf-autopilot
+/plugin marketplace add paraang/gf-autopilot
+/plugin install gf-autopilot@gf-autopilot
+```
+
+그래도 옛 버전이 잡히면 **캐시 디렉터리 수동 삭제** (Windows 예시):
+
+```powershell
+Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\plugins\marketplaces\gf-autopilot"
+Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\plugins\cache\gf-autopilot" -ErrorAction SilentlyContinue
+```
+
+macOS / Linux 는 `~/.claude/plugins/marketplaces/gf-autopilot` 와 `~/.claude/plugins/cache/gf-autopilot` 를 `rm -rf` 합니다.
+
+### 2) 메인테이너 — 새 버전을 릴리스해서 배포
+
+권장: `/gf-release` 스킬 사용. 스킬이 아래를 자동 수행합니다.
+
+1. 사용자에게 새 버전 번호 입력 받음 (필수, 자동 추론 없음)
+2. 기존 태그 컨벤션과 비교해 일관성 검증
+3. 프로젝트 타입별 버전 파일 동기화 (`plugin.json` 의 `version`, `marketplace.json` 의 plugin entry `version` **및 `source.ref`**)
+4. `CHANGELOG.md` 갱신 — [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) 형식, 배포자 메모 포함
+5. `git flow release start` → 위 변경 commit → `git flow release finish` (main 머지 + annotated 태그 + develop 백머지 + release 브랜치 삭제)
+6. 사용자 확인 후 `git push origin main develop <version>`
+
+```text
+/gf-release
+```
+
+스킬을 쓰지 않는 경우 수동 절차:
+
+```bash
+# 1. develop 위에서 release 시작
+git checkout develop
+git flow release start <version>
+
+# 2. 버전 동기화
+#    .claude-plugin/plugin.json       — "version" 을 <version> 으로
+#    .claude-plugin/marketplace.json  — plugins[0].version 과 plugins[0].source.ref 모두 <version> 으로
+git commit -am "chore(release): bump version to <version>"
+
+# 3. CHANGELOG.md 갱신 (Keep a Changelog 1.1.0)
+git commit -am "docs(changelog): add <version> entry"
+
+# 4. release finish — main 머지 + 태그 + develop 백머지 + release 브랜치 삭제
+GIT_MERGE_AUTOEDIT=no git flow release finish -m "Release <version>" <version>
+
+# 5. push
+git push origin main develop <version>
+```
+
+`marketplace.json` 의 `source.ref` 가 새 태그로 갱신되어 default branch(`develop`) 에 반영되면, 설치자들이 `/plugin marketplace update` 로 새 버전을 받게 됩니다.
+
+> 핫픽스(이미 릴리스된 버전의 긴급 결함 수정)는 `git flow hotfix start/finish` 흐름을 사용하세요. 향후 `/gf-hotfix` 스킬로 자동화될 예정입니다.
 
 ---
 
