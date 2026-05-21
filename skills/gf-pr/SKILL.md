@@ -1,6 +1,6 @@
 ---
 name: gf-pr
-description: Use when the user asks to "create a PR", "open a pull request", "PR 만들어줘", "feature finish 전에 PR 띄워줘", "rebase and squash 후 PR", "send the feature for review", or wants to ship a feature branch via pull request before running git flow feature finish. Updates develop, rebases the feature branch on top of it, squashes commits into one, force-with-lease pushes, ensures `.github/PULL_REQUEST_TEMPLATE.md` exists (creating it from the project's standard template if missing), and prints a GitHub compare URL that opens the PR creation page with the template prefilled. If a rebase conflict appears, the skill stops and waits for the user to resolve it. Does NOT use `gh` CLI.
+description: Use when the user asks to "create a PR", "open a pull request", "PR 만들어줘", "feature finish 전에 PR 띄워줘", "rebase and squash 후 PR", "send the feature for review", or wants to ship a feature branch via pull request before running git flow feature finish. Updates develop, rebases the feature branch on top of it, squashes commits into one, force-with-lease pushes, ensures `.github/PULL_REQUEST_TEMPLATE.md` exists (creating it from the project's standard template if missing), then creates the pull request via GitHub CLI (`gh pr create`) and returns the PR URL to the user. If a rebase conflict appears, the skill stops and waits for the user to resolve it.
 version: 0.1.0
 allowed-tools: [Bash, Read, Edit, Write]
 ---
@@ -15,8 +15,7 @@ allowed-tools: [Bash, Read, Edit, Write]
 - 현재 feature 브랜치를 그 위로 **rebase + squash (1 commit)** 처리
 - 충돌 발생 시 즉시 중단하고 사용자 해결을 대기
 - `.github/PULL_REQUEST_TEMPLATE.md` 가 없으면 표준 양식으로 생성
-- GitHub **compare URL** 을 만들어 사용자에게 안내 → 사용자가 브라우저로 PR 생성
-- `gh` CLI 미사용
+- **GitHub CLI (`gh pr create`)** 로 PR 생성 후 URL 을 사용자에게 안내
 
 ## When to use
 
@@ -32,6 +31,7 @@ allowed-tools: [Bash, Read, Edit, Write]
 
 - 사전조건
   - `git flow` AVH edition (gf-init 사전 권장)
+  - **GitHub CLI (`gh`) 설치 + 인증 완료** (`gh auth status` 성공)
   - 현재 브랜치가 `feature/<name>`
   - 작업 트리 clean
   - `origin` 원격 존재 (GitHub)
@@ -46,12 +46,14 @@ allowed-tools: [Bash, Read, Edit, Write]
 
    ```bash
    git flow version              # AVH Edition 확인
+   gh --version                  # GitHub CLI 설치 확인
+   gh auth status                # gh 인증 확인
    git status --porcelain        # 비어있어야 함
    git branch --show-current     # feature/* 여야 함
    git remote get-url origin     # GitHub URL
    ```
 
-   조건 미충족 시 중단하고 사유 안내.
+   조건 미충족 시 중단하고 사유 안내. `gh` 미설치 시 https://cli.github.com 설치 안내, `gh auth status` 실패 시 `gh auth login` 실행 안내 (스킬이 자동으로 인증 시도 금지).
 
 2. **develop 최신화**
 
@@ -157,44 +159,55 @@ allowed-tools: [Bash, Read, Edit, Write]
    git checkout feature/<name>
    ```
 
-   거부 시 템플릿 없이 진행 (compare URL 만 출력).
+   거부 시 템플릿 없이 진행 (gh 가 빈 본문으로 PR 생성).
 
-8. **compare URL 생성 + 안내**
+8. **gh pr create — PR 생성**
 
-   - `git remote get-url origin` 으로 owner/repo 추출. HTTPS 와 SSH URL 양쪽 처리:
-     - `https://github.com/<owner>/<repo>.git`
-     - `git@github.com:<owner>/<repo>.git`
-   - URL 구성:
+   기존 PR 존재 여부 먼저 확인 (force-push 만으로 갱신되므로 새로 만들지 않음):
 
-     ```text
-     https://github.com/<owner>/<repo>/compare/develop...<feature-branch>?expand=1
+   ```bash
+   gh pr view --head feature/<name> --json url --jq .url
+   ```
+
+   - 출력이 있으면 그 URL 을 사용자에게 안내하고 9번으로. **새 PR 만들지 않음.**
+   - 출력이 없으면 (=PR 없음) 새로 생성:
+
+     ```bash
+     gh pr create \
+       --base develop \
+       --head feature/<name> \
+       --title "<squashed commit subject>" \
+       --body-file .github/PULL_REQUEST_TEMPLATE.md
      ```
 
-     `expand=1` 이 PR 생성 페이지를 바로 띄우고, PR 템플릿 파일이 있으면 본문에 자동 prefill 됩니다.
-
-   - 옵션: squashed commit 메시지를 PR 제목으로 prefill 하려면 `&title=<URL-encoded>` 추가. 자동 추가는 하지 말고 commit subject 만 그대로 안내 텍스트에 노출.
+     - PR 템플릿이 없는 경우(=7번에서 사용자가 거부) `--body-file` 인자를 빼고 `--body ""` 로 빈 본문 생성.
+     - 다른 위치(예: `docs/PULL_REQUEST_TEMPLATE.md`) 에 템플릿이 있으면 해당 경로를 `--body-file` 로 지정.
+   - 생성 성공 시 stdout 마지막 줄이 PR URL — 캡쳐해 9번에서 사용.
+   - 실패 시 (권한/네트워크/branch protection 등) 메시지 그대로 사용자에게 전달하고 중단. 재시도 자동화 금지.
 
 9. **사용자에게 보고**
 
-   - 생성된 compare URL (클릭 가능 형태)
-   - squash 후 commit subject (PR 제목 후보)
+   - 생성/재사용된 **PR URL** (클릭 가능 형태)
+   - PR 신규 생성 / 기존 갱신 여부
+   - squash 후 commit subject (= PR 제목)
    - rebase 결과: ahead `develop` 대비 commit 1개
    - push 결과
-   - 다음 액션: "브라우저에서 위 URL 을 열어 PR 을 생성하세요. 본문은 `.github/PULL_REQUEST_TEMPLATE.md` 양식에 따라 자동 채워집니다."
+   - 다음 액션: "위 PR 페이지에서 본문을 채우고 리뷰어를 지정하세요."
 
 ## Output
 
-- GitHub compare URL (PR 생성 페이지)
-- squashed commit subject (PR 제목 후보)
+- **PR URL** (생성됐거나 기존에 있던 PR)
+- 신규 생성 / 기존 갱신 여부
+- squashed commit subject (PR 제목)
 - 푸시된 ref (`feature/<name>`)
 - PR 템플릿 신규 생성 여부
 
 ## Notes (구현 시 주의)
 
-- **`gh` CLI 미사용**: 모든 단계는 plain git + URL 생성으로 완료. PR 자체의 최종 생성(=Submit)은 사용자가 브라우저에서 수행.
+- **`gh` 인증 필수**: `gh auth status` 실패 시 즉시 중단. 스킬이 토큰 자동 발급 / `gh auth login` 자동 실행 금지. 사용자가 직접 인증한 뒤 다시 실행하도록 안내.
+- **기존 PR 재사용**: 같은 head 브랜치로 이미 열린 PR 이 있으면 `gh pr view --head` 로 URL 만 찾아 안내. 새 PR 생성 시도 금지 (force-push 만으로 기존 PR 본체가 새 commit 으로 갱신됨).
 - **충돌 자동 해결 금지**: rebase 중 충돌은 항상 사용자에게 위임. theirs/ours 자동 선택 금지.
 - **force push 정책**: 항상 `--force-with-lease` 만 사용. 일반 `--force` 금지.
 - **squash 메시지는 반드시 사용자 입력**: 자동 생성/합성 금지. commit 1개일 때만 기존 메시지 재사용.
 - **PR 템플릿 생성은 동의 후**: develop 브랜치에 직접 commit 하는 일회성 셋업이므로 침묵하지 말 것.
-- **이미 PR이 열려 있을 수 있음**: compare URL 은 이미 열린 PR이 있어도 동일 페이지를 보여줍니다. 사용자가 기존 PR 갱신을 의도한 거라면 force-with-lease push 만으로 충분 — 별도 PR 재생성 불필요.
 - **branch protection 충돌**: 일부 저장소는 force push 자체를 금지. 거부되면 사용자에게 보고만 하고 중단.
