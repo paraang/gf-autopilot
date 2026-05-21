@@ -12,8 +12,8 @@
       "description": "Git-flow workflow automation: feature/release/hotfix branch helpers, naming conventions, and merge orchestration.",
       "version": "0.1.0",
       "source": {
-        "source": "url",
-        "url": "https://github.com/paraang/gf-autopilot.git"
+        "source": "github",
+        "repo": "paraang/gf-autopilot"
       },
       "category": "development",
       "author": {
