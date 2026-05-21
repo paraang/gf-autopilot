@@ -1,0 +1,27 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "gf-autopilot",
+  "description": "gf-autopilot marketplace — git-flow workflow automation plugin for Claude Code.",
+  "owner": {
+    "name": "paraang",
+    "email": "wkdgusrhkd@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "gf-autopilot",
+      "description": "Git-flow workflow automation: feature/release/hotfix branch helpers, naming conventions, and merge orchestration.",
+      "version": "0.1.0",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/paraang/gf-autopilot.git"
+      },
+      "category": "development",
+      "author": {
+        "name": "paraang",
+        "email": "wkdgusrhkd@gmail.com"
+      },
+      "homepage": "https://github.com/paraang/gf-autopilot",
+      "keywords": ["git-flow", "branching", "automation"]
+    }
+  ]
+}
