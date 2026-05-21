@@ -146,9 +146,21 @@ allowed-tools: [Bash, Read]
 
    - 권장 키 8개가 모두 보이고, `main` / `develop` 브랜치가 존재하면 OK.
 
-7. **다음 단계 안내**
+7. **`develop` 브랜치로 체크아웃 (next-release development)**
 
-   - "이제 `/feature-start <name>` 으로 새 기능을 시작할 수 있습니다."
+   git-flow 에서 다음 릴리스를 향한 모든 작업(feature/bugfix)은 `develop` 위에서 분기합니다. 초기화 직후 사용자가 곧바로 작업을 시작할 수 있도록 마지막에 `develop` 으로 체크아웃합니다.
+
+   ```bash
+   git checkout develop
+   ```
+
+   - 이미 `develop` 위에 있으면 no-op.
+   - 작업 트리에 사용자가 만든 staged/unstaged 변경이 있어 체크아웃이 실패하면, 강제 전환하지 말고 사용자에게 stash 또는 commit 후 직접 체크아웃하도록 안내합니다.
+   - 분기 B에서 사용자가 "현재 설정 유지" 를 선택했더라도 이 단계는 동일하게 수행합니다 (브랜치 위치는 설정과 무관).
+
+8. **다음 단계 안내**
+
+   - "현재 브랜치는 `develop` 입니다. 이제 `/feature-start <name>` 으로 새 기능을 시작할 수 있습니다."
    - 원격 저장소가 설정되어 있고(`git remote get-url origin` 성공) 두 브랜치가 푸시되지 않았다면, 사용자에게 `git push -u origin main develop` 실행 여부를 묻습니다(강제 실행 금지).
 
 ## Output
@@ -156,6 +168,7 @@ allowed-tools: [Bash, Read]
 - 적용된 권장 설정 표 (분기 A) 또는 차이 표 + 사용자 선택 결과 (분기 B)
 - 변경된 항목 / 변경되지 않은 항목 요약
 - 현재 브랜치 상태 (`main`, `develop` 존재 여부)
+- **최종 체크아웃된 브랜치** (`develop` 이어야 정상)
 - 백업 파일 경로 (분기 B에서 덮어쓰기 한 경우)
 - 다음 액션 제안
 
