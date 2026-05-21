@@ -158,10 +158,31 @@ allowed-tools: [Bash, Read]
    - 작업 트리에 사용자가 만든 staged/unstaged 변경이 있어 체크아웃이 실패하면, 강제 전환하지 말고 사용자에게 stash 또는 commit 후 직접 체크아웃하도록 안내합니다.
    - 분기 B에서 사용자가 "현재 설정 유지" 를 선택했더라도 이 단계는 동일하게 수행합니다 (브랜치 위치는 설정과 무관).
 
-8. **다음 단계 안내**
+8. **`.gitignore` 에 `pr-review-*` 패턴 추가**
+
+   `/gf-pr-review` 스킬이 저장소 루트에 생성하는 `pr-review-<N>.md` / `pr-review-<N>.json` 리포트 파일이 실수로 commit 되지 않도록 사전에 `.gitignore` 에 등록합니다.
+
+   추가할 라인 (정확히 이 두 줄만, 헤더 주석 포함):
+
+   ```gitignore
+
+   # gf-pr-review report files
+   pr-review-*.md
+   pr-review-*.json
+   ```
+
+   - `.gitignore` 가 없으면 위 내용으로 새 파일 생성.
+   - 이미 있으면 동일 패턴이 존재하지 않을 때만 append (중복 라인 만들지 말 것). 예:
+     ```bash
+     grep -qxF 'pr-review-*.md' .gitignore || printf '\n# gf-pr-review report files\npr-review-*.md\npr-review-*.json\n' >> .gitignore
+     ```
+   - 변경이 발생하면 사용자에게 알리고 다음 단계 안내와 함께 commit 여부를 사용자 결정에 맡깁니다. 자동 commit 금지.
+
+9. **다음 단계 안내**
 
    - "현재 브랜치는 `develop` 입니다. 이제 `git flow feature start <name>` 으로 새 기능을 시작할 수 있습니다."
    - 원격 저장소가 설정되어 있고(`git remote get-url origin` 성공) 두 브랜치가 푸시되지 않았다면, 사용자에게 `git push -u origin main develop` 실행 여부를 묻습니다(강제 실행 금지).
+   - 8번에서 `.gitignore` 가 수정되었으면 같이 commit 할지 사용자에게 묻습니다 (예: `chore: ignore pr-review-* reports`).
 
 ## Output
 
