@@ -192,7 +192,9 @@ allowed-tools: [Bash, Read, Edit, Write]
    - squash 후 commit subject (= PR 제목)
    - rebase 결과: ahead `develop` 대비 commit 1개
    - push 결과
-   - 다음 액션: "위 PR 페이지에서 본문을 채우고 리뷰어를 지정하세요."
+   - **다음 권장 행동**:
+     1. PR 페이지에서 본문을 채우고 리뷰어를 지정하세요.
+     2. 자동 리뷰가 필요하면 위 PR URL 을 인자로 **`/gf-pr-review <PR URL>`** 을 실행하세요 (gf-autopilot 의 PR 리뷰 스킬 — 깊이 있는 분석 + 사용자 확인 후 GitHub 에 리뷰 게시).
 
 ## Output
 
