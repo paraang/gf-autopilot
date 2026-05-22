@@ -4,17 +4,15 @@ Claude Code 플러그인 — **git-flow 워크플로우 자동화**.
 
 > A Claude Code plugin that automates git-flow workflows: feature, release, and hotfix branches with consistent naming and merge orchestration.
 
-현재 버전: `0.1.0` — 스캐폴드 단계. 실제 스킬은 `template`을 복사해서 점진적으로 추가합니다.
+---
+
+## What it does
+
+gf-autopilot은 git-flow 브랜칭 모델을 Claude Code 안에서 일관되게 사용하도록 돕는 스킬 모음.
 
 ---
 
-## 무엇을 하나요? (What it does)
-
-gf-autopilot은 git-flow 브랜칭 모델을 Claude Code 안에서 일관되게 사용하도록 돕는 스킬 모음입니다.
-
----
-
-## 사전 요구사항 (Prerequisites)
+## Prerequisites
 
 - [git](https://git-scm.com/)
 - [git flow (AVH edition)](https://github.com/petervanderdoes/gitflow-avh)
@@ -22,7 +20,7 @@ gf-autopilot은 git-flow 브랜칭 모델을 Claude Code 안에서 일관되게 
 
 ---
 
-## 설치 (Installation)
+## Installation
 
 이 저장소가 GitHub에 호스팅되어 있다고 가정합니다 (`https://github.com/paraang/gf-autopilot`).
 
@@ -34,8 +32,6 @@ gf-autopilot은 git-flow 브랜칭 모델을 Claude Code 안에서 일관되게 
 /plugin install gf-autopilot@gf-autopilot
 ```
 
-마켓플레이스 이름과 플러그인 이름이 모두 `gf-autopilot` 인 것은 의도된 동작입니다 — 이 저장소는 **단일 플러그인을 셀프 호스팅하는 마켓플레이스**이기 때문입니다.
-
 업데이트:
 
 ```bash
@@ -43,53 +39,33 @@ gf-autopilot은 git-flow 브랜칭 모델을 Claude Code 안에서 일관되게 
 /plugin update gf-autopilot@gf-autopilot
 ```
 
----
-
-## 새 스킬 추가하기 (Adding a new skill)
-
-모든 스킬은 `skills/<skill-name>/SKILL.md` 한 파일로 정의됩니다. 시작점은 `template` 입니다:
-
-```bash
-cp -r skills/template skills/feature-start
-# 또는 Windows PowerShell:
-Copy-Item -Recurse skills\template skills\feature-start
-```
-
-그런 다음 `skills/feature-start/SKILL.md` 를 열어:
-
-1. frontmatter의 `name` 을 디렉터리 이름과 일치시키기
-2. `description` 에 자동 트리거를 위한 정확한 사용자 문구 2~5개 넣기
-3. 본문에 **Purpose / When to use / Inputs / Steps / Output** 다섯 섹션 작성
-
-자세한 작성 가이드는 `skills/template/SKILL.md` 에 모두 들어있습니다.
-
----
-
-## 디렉터리 구조 (Repository layout)
+## Getting Started
 
 ```
-gf-autopilot/
-├── .claude-plugin/
-│   ├── plugin.json          # 플러그인 메타데이터
-│   └── marketplace.json     # 마켓플레이스 정의(셀프 호스팅)
-├── skills/
-│   └── template/           # 새 스킬의 출발점 (동작하지 않음)
-│       └── SKILL.md
-├── README.md
-├── LICENSE
-└── .gitignore
+$ gf-init
 ```
 
+## The sprint
+
+```
+                                 ↗ pr 리뷰 (w/ claude code) ↘
+feature start → commit → pr 생성                               merge
+                                 ↘ pr 리뷰 (w/ co-workers)  ↗
+
+
+feature start → commit → feature finish
+```
+
+| Skill           | 역할                                                                                                                                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/gf-init`      | `gf-autopilot`을 사용하기 위한 선행조건 검사. git-flow 컨벤션 적용(main/develop + 표준 접두사) + `.gitignore` 의 `pr-review-*` 패턴 + `.github/PULL_REQUEST_TEMPLATE.md` 표준 양식 자동 등록 + 종료 시 `develop` 으로 체크아웃 |
+| `/gf-pr`        | 현재 feature 브랜치를 `develop` 위로 rebase·squash·force-with-lease push 후 `gh pr create` 로 PR 생성. PR 본문은 PR 템플릿 양식 그대로 prefill, 머지는 `--no-ff` (merge commit) 권장                                           |
+| `/gf-pr-review` | GitHub PR URL 입력 → 변경 파일·호출자·테스트까지 읽고 7개 축·4단계 심각도로 분석 → `event=COMMENT` 로 자동 게시 (사용자 확인 게이트 없음). `APPROVE`/`REQUEST_CHANGES` 는 자동 발행하지 않음                                   |
+| `/gf-release`   | 사용자에게 새 버전 번호를 받아 메타파일(`plugin.json`, `marketplace.json` 의 `source.ref` 등) bump + `CHANGELOG.md` 작성 (Keep a Changelog 1.1.0) + `git flow release start/finish` + 태그 + push 까지 일괄                    |
+| `template`      | 새 스킬 작성용 참조 양식 (frontmatter 스펙·본문 5섹션 가이드·완성 예시). 동작하지 않으며 `skills/template/` 를 복사해 새 스킬을 시작합니다                                                                                     |
+
 ---
 
-## 기여 (Contributing)
-
-1. 새 스킬은 `skills/template` 을 복사해서 시작합니다.
-2. PR 전에 로컬에서 Claude Code를 재로드하고 트리거 문구로 자동 호출되는지 확인합니다.
-3. 버전은 SemVer를 따릅니다. 스킬 추가 = minor bump, 버그 수정 = patch bump.
-
----
-
-## 라이선스 (License)
+## License
 
 MIT — `LICENSE` 파일 참고.
