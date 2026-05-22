@@ -14,8 +14,8 @@ allowed-tools: [Bash, Read, Edit, Write]
 - `develop` 을 원격 최신으로 끌어옴
 - 현재 feature 브랜치를 그 위로 **rebase + squash (1 commit)** 처리
 - 충돌 발생 시 즉시 중단하고 사용자 해결을 대기
-- `.github/PULL_REQUEST_TEMPLATE.md` 가 없으면 표준 양식으로 생성
-- **GitHub CLI (`gh pr create`)** 로 PR 생성 후 URL 을 사용자에게 안내
+- PR 템플릿 (`.github/PULL_REQUEST_TEMPLATE.md` 등) 이 존재하는지 확인. 없으면 중단하고 `/gf-init` 으로 생성 안내 (자체 생성 안 함)
+- **GitHub CLI (`gh pr create`)** 로 PR 생성 — 본문은 PR 템플릿 양식을 그대로 `--body-file` 로 prefill
 
 ## When to use
 
@@ -32,13 +32,13 @@ allowed-tools: [Bash, Read, Edit, Write]
 - 사전조건
   - `git flow` AVH edition (gf-init 사전 권장)
   - **GitHub CLI (`gh`) 설치 + 인증 완료** (`gh auth status` 성공)
+  - **PR 템플릿 존재 필수**: `.github/PULL_REQUEST_TEMPLATE.md` 등 GitHub 가 인식하는 경로 중 하나. 없으면 본 스킬은 중단합니다 — 먼저 `/gf-init` 으로 생성하세요.
   - 현재 브랜치가 `feature/<name>`
   - 작업 트리 clean
   - `origin` 원격 존재 (GitHub)
 - 인자: 없음
 - 사용자에게 받을 정보
   - squash commit 메시지 (commit 이 2개 이상이면 필수, 없으면 중단)
-  - `.github/PULL_REQUEST_TEMPLATE.md` 신규 생성 시 동의
 
 ## Steps
 
@@ -121,45 +121,20 @@ allowed-tools: [Bash, Read, Edit, Write]
 
    - 거부되면 (원격에 다른 협업자 commit 있음) 즉시 중단하고 사용자에게 `git fetch` 후 상황 확인 안내. **`--force` 강행 금지.**
 
-7. **PR 템플릿 보장**
+7. **PR 템플릿 존재 확인 (없으면 중단)**
 
-   다음 위치 중 어느 하나라도 있으면 OK (GitHub 가 인식):
+   다음 위치 중 어느 하나에 PR 템플릿이 있어야 합니다 (GitHub 인식 경로):
    - `.github/PULL_REQUEST_TEMPLATE.md`
    - `docs/PULL_REQUEST_TEMPLATE.md`
    - `PULL_REQUEST_TEMPLATE.md` (저장소 루트)
    - `.github/PULL_REQUEST_TEMPLATE/*.md`
 
-   없으면 사용자에게:
+   하나도 없으면 **즉시 중단**하고 사용자에게 안내:
 
-   > ".github/PULL_REQUEST_TEMPLATE.md 가 없습니다. 표준 양식으로 생성해 develop 에 추가할까요?"
+   > "PR 템플릿이 없습니다. 먼저 `/gf-init` 을 실행해 `.github/PULL_REQUEST_TEMPLATE.md` 를 표준 양식으로 생성한 뒤 이 스킬을 다시 호출하세요."
 
-   동의 시 `develop` 브랜치에 아래 내용으로 생성 → commit → push:
-
-   ```markdown
-   ## #️⃣ Task ID
-
-   task-id / feature-id
-
-   ## 📝작업 내용
-
-   - 작업 내용
-
-   ## PR 생성자 메모
-   ```
-
-   실행:
-
-   ```bash
-   git checkout develop
-   mkdir -p .github
-   # 위 템플릿을 .github/PULL_REQUEST_TEMPLATE.md 로 작성
-   git add .github/PULL_REQUEST_TEMPLATE.md
-   git commit -m "chore: add PR template"
-   git push origin develop
-   git checkout feature/<name>
-   ```
-
-   거부 시 템플릿 없이 진행 (gh 가 빈 본문으로 PR 생성).
+   - **본 스킬은 PR 템플릿을 자동 생성하지 않습니다.** 템플릿 셋업은 `/gf-init` 의 책임.
+   - 발견된 템플릿 경로를 기록해 8번에서 `--body-file` 로 사용.
 
 8. **gh pr create — PR 생성**
 
@@ -177,11 +152,11 @@ allowed-tools: [Bash, Read, Edit, Write]
        --base develop \
        --head feature/<name> \
        --title "<squashed commit subject>" \
-       --body-file .github/PULL_REQUEST_TEMPLATE.md
+       --body-file <PR 템플릿 경로>
      ```
 
-     - PR 템플릿이 없는 경우(=7번에서 사용자가 거부) `--body-file` 인자를 빼고 `--body ""` 로 빈 본문 생성.
-     - 다른 위치(예: `docs/PULL_REQUEST_TEMPLATE.md`) 에 템플릿이 있으면 해당 경로를 `--body-file` 로 지정.
+     - **본문은 반드시 7번에서 확인된 PR 템플릿 파일을 `--body-file` 로 그대로 사용합니다.** 빈 본문 / 임의 본문 / 양식 축소 금지.
+     - 템플릿 경로는 7번에서 발견된 그대로 (`.github/PULL_REQUEST_TEMPLATE.md`, `docs/PULL_REQUEST_TEMPLATE.md`, `PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/<file>.md` 중 하나).
 
    - 생성 성공 시 stdout 마지막 줄이 PR URL — 캡쳐해 9번에서 사용.
    - 실패 시 (권한/네트워크/branch protection 등) 메시지 그대로 사용자에게 전달하고 중단. 재시도 자동화 금지.
@@ -216,6 +191,6 @@ allowed-tools: [Bash, Read, Edit, Write]
 - **충돌 자동 해결 금지**: rebase 중 충돌은 항상 사용자에게 위임. theirs/ours 자동 선택 금지.
 - **force push 정책**: 항상 `--force-with-lease` 만 사용. 일반 `--force` 금지.
 - **squash 메시지는 반드시 사용자 입력**: 자동 생성/합성 금지. commit 1개일 때만 기존 메시지 재사용.
-- **PR 템플릿 생성은 동의 후**: develop 브랜치에 직접 commit 하는 일회성 셋업이므로 침묵하지 말 것.
+- **PR 본문은 반드시 PR 템플릿 양식 준수**: GitHub 가 인식하는 PR 템플릿 파일을 그대로 `gh pr create --body-file` 로 prefill 합니다. **양식 임의 변경 / 섹션 누락 / 빈 본문 금지.** 양식 자체가 없는 저장소는 본 스킬이 7번에서 즉시 중단하고 `/gf-init` 으로 생성 안내 — 본 스킬은 PR 템플릿을 자체 생성하지 않습니다.
 - **branch protection 충돌**: 일부 저장소는 force push 자체를 금지. 거부되면 사용자에게 보고만 하고 중단.
 - **PR 머지 정책 (`--no-ff`)**: 머지는 항상 merge commit 을 생성합니다 (`gh pr merge --merge` 또는 GitHub UI 의 "Create a merge commit"). Squash and merge / Rebase and merge 금지 — 본 스킬이 이미 push 전에 squash 했으므로 추가 squash 는 무의미하고, merge commit 이 없으면 git-flow 의 history 분기점이 사라집니다. 저장소의 GitHub 설정에서 "Allow merge commits" 만 활성화하고 나머지는 비활성화하는 것을 권장.

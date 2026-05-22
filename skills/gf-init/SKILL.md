@@ -178,11 +178,36 @@ allowed-tools: [Bash, Read]
      ```
    - 변경이 발생하면 사용자에게 알리고 다음 단계 안내와 함께 commit 여부를 사용자 결정에 맡깁니다. 자동 commit 금지.
 
-9. **다음 단계 안내**
+9. **PR 템플릿 (`.github/PULL_REQUEST_TEMPLATE.md`) 생성**
 
-   - "현재 브랜치는 `develop` 입니다. 이제 `git flow feature start <name>` 으로 새 기능을 시작할 수 있습니다."
-   - 원격 저장소가 설정되어 있고(`git remote get-url origin` 성공) 두 브랜치가 푸시되지 않았다면, 사용자에게 `git push -u origin main develop` 실행 여부를 묻습니다(강제 실행 금지).
-   - 8번에서 `.gitignore` 가 수정되었으면 같이 commit 할지 사용자에게 묻습니다 (예: `chore: ignore pr-review-* reports`).
+   `/gf-pr` 흐름이 양식 있는 PR 본문을 prefill 할 수 있도록 표준 PR 템플릿을 등록합니다. (`gf-pr` 은 더 이상 자체 생성하지 않고 이 파일을 그대로 사용합니다.)
+
+   - GitHub 가 인식하는 다음 위치 중 어느 하나에 이미 PR 템플릿이 있으면 그대로 두고 사용자에게 "기존 템플릿 사용" 만 알립니다 (변경 금지):
+     - `.github/PULL_REQUEST_TEMPLATE.md`
+     - `docs/PULL_REQUEST_TEMPLATE.md`
+     - `PULL_REQUEST_TEMPLATE.md` (저장소 루트)
+     - `.github/PULL_REQUEST_TEMPLATE/*.md`
+   - 어디에도 없으면 `.github/PULL_REQUEST_TEMPLATE.md` 를 다음 내용 그대로 생성:
+
+     ```markdown
+     ## #️⃣ Task ID
+
+     task-id / feature-id
+
+     ## 📝작업 내용
+
+     - 작업 내용
+
+     ## PR 생성자 메모
+     ```
+
+   - 변경이 발생하면 사용자에게 알리고, commit 여부는 다음 단계에서 사용자 결정에 맡깁니다 (자동 commit 금지).
+
+10. **다음 단계 안내**
+
+    - "현재 브랜치는 `develop` 입니다. 이제 `git flow feature start <name>` 으로 새 기능을 시작할 수 있습니다."
+    - 원격 저장소가 설정되어 있고(`git remote get-url origin` 성공) 두 브랜치가 푸시되지 않았다면, 사용자에게 `git push -u origin main develop` 실행 여부를 묻습니다(강제 실행 금지).
+    - 8번 / 9번에서 `.gitignore` 또는 `.github/PULL_REQUEST_TEMPLATE.md` 가 추가·수정되었으면 같이 commit 할지 사용자에게 묻습니다 (예: `chore: ignore pr-review-* reports`, `chore: add PR template`).
 
 ## Output
 
