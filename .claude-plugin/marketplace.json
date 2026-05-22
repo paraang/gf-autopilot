@@ -10,11 +10,11 @@
     {
       "name": "gf-autopilot",
       "description": "Git-flow workflow automation: feature/release/hotfix branch helpers, naming conventions, and merge orchestration.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "source": {
         "source": "url",
         "url": "https://github.com/paraang/gf-autopilot.git",
-        "ref": "0.2.0"
+        "ref": "0.2.1"
       },
       "category": "development",
       "author": {
