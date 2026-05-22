@@ -19,7 +19,7 @@ allowed-tools: [Bash, Read, Edit, Write]
 
 ## When to use
 
-- "PR 만들어줘", "PR 띄우기", "리뷰 보낼게", "rebase and squash 후 PR"
+- "PR 생성", "PR 띄우기", "리뷰 보낼게", "rebase and squash 후 PR"
 - feature 작업을 마쳤지만 곧바로 develop에 머지하지 않고 리뷰 절차를 거치고 싶을 때
 
 **Anti-pattern**
@@ -182,11 +182,11 @@ allowed-tools: [Bash, Read, Edit, Write]
 
      - PR 템플릿이 없는 경우(=7번에서 사용자가 거부) `--body-file` 인자를 빼고 `--body ""` 로 빈 본문 생성.
      - 다른 위치(예: `docs/PULL_REQUEST_TEMPLATE.md`) 에 템플릿이 있으면 해당 경로를 `--body-file` 로 지정.
+
    - 생성 성공 시 stdout 마지막 줄이 PR URL — 캡쳐해 9번에서 사용.
    - 실패 시 (권한/네트워크/branch protection 등) 메시지 그대로 사용자에게 전달하고 중단. 재시도 자동화 금지.
 
 9. **사용자에게 보고**
-
    - 생성/재사용된 **PR URL** (클릭 가능 형태)
    - PR 신규 생성 / 기존 갱신 여부
    - squash 후 commit subject (= PR 제목)
@@ -194,7 +194,12 @@ allowed-tools: [Bash, Read, Edit, Write]
    - push 결과
    - **다음 권장 행동**:
      1. PR 페이지에서 본문을 채우고 리뷰어를 지정하세요.
-     2. 자동 리뷰가 필요하면 위 PR URL 을 인자로 **`/gf-pr-review <PR URL>`** 을 실행하세요 (gf-autopilot 의 PR 리뷰 스킬 — 깊이 있는 분석 + 사용자 확인 후 GitHub 에 리뷰 게시).
+     2. 자동 리뷰가 필요하면 위 PR URL 을 인자로 **`/gf-pr-review <PR URL>`** 을 실행하세요 (gf-autopilot 의 PR 리뷰 스킬).
+     3. PR 머지는 반드시 **`--no-ff` (merge commit 생성)** 방식으로 진행하세요:
+        ```bash
+        gh pr merge <PR#> --merge --delete-branch
+        ```
+        GitHub UI 에서는 "Create a merge commit" 옵션. **Squash and merge / Rebase and merge 사용 금지** — feature 브랜치가 이미 1 commit 으로 squash 되어 있어 다시 squash 할 필요가 없고, merge commit 으로 git-flow 의 분기점을 보존해야 합니다.
 
 ## Output
 
@@ -213,3 +218,4 @@ allowed-tools: [Bash, Read, Edit, Write]
 - **squash 메시지는 반드시 사용자 입력**: 자동 생성/합성 금지. commit 1개일 때만 기존 메시지 재사용.
 - **PR 템플릿 생성은 동의 후**: develop 브랜치에 직접 commit 하는 일회성 셋업이므로 침묵하지 말 것.
 - **branch protection 충돌**: 일부 저장소는 force push 자체를 금지. 거부되면 사용자에게 보고만 하고 중단.
+- **PR 머지 정책 (`--no-ff`)**: 머지는 항상 merge commit 을 생성합니다 (`gh pr merge --merge` 또는 GitHub UI 의 "Create a merge commit"). Squash and merge / Rebase and merge 금지 — 본 스킬이 이미 push 전에 squash 했으므로 추가 squash 는 무의미하고, merge commit 이 없으면 git-flow 의 history 분기점이 사라집니다. 저장소의 GitHub 설정에서 "Allow merge commits" 만 활성화하고 나머지는 비활성화하는 것을 권장.
